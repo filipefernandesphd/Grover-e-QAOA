@@ -6,7 +6,7 @@
 
 from qiskit import QuantumCircuit
 
-class Grover:
+class GroverCircuit:
     def __init__(self, target:str, reversebits: bool = False):        
         # String do bit alvo a ser encontrado pelo Grover
         self.__target = target 
@@ -17,7 +17,10 @@ class Grover:
         # Se inverterá os bits para melhorar a leitura
         self.__reversebits = reversebits
 
-    def circuit(self):
+    def getNqubits(self):
+        return self.__n_qubits
+
+    def draw(self):
         self.__criar_circuito()
         self.__oraculo()
         self.__difusor()
