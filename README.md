@@ -12,7 +12,7 @@ Implementar o algoritmo de Grover em **4 contextos distintos**, realizando medi�
 
 **CENÁRIO 1**: *2 qubits e 1 alvo*. Verificar se o estado alvo aparece com alta probabilidade nas medições
 
-**CENÁRIO 2**: *16 qubits e 1 alvo*. Implementar também a busca clássica linear, percorrendo todos os estados de $0$ até $2^{16}-1$ e comparar o tempo de execução
+**CENÁRIO 2**: *16 qubits e 1 alvo*. Implementar também a busca clássica linear, percorrendo todos os estados de $0$ até $2^{16}-1$ $(65535)$ e comparar o tempo de execução
 
 **CENÁRIO 3**: *maior número de qubits viável no seu ambiente*, com apenas um alvo. O objetivo aqui é observar os limites da simulação, verificando se ocorrem erros, lentidão ou travamentos.
 
