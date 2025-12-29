@@ -1,93 +1,132 @@
-from qiskit import transpile
-from qiskit_aer import AerSimulator, Aer
-import platform
-import psutil
-import time
+# ============================================================
+# Relatório comparativo de desempenho
+#
+# Desenvolvido por Filipe Fernandes
+# ============================================================
+
+import matplotlib.pyplot as plt
+
 
 class Relatorio:
-    def __init__(self):
-        pass
-    
-    def executar_circuito(qc, shots=1024):
-        """
-        Executa o circuito quântico e mede o tempo de execução.
-        Retorna o resultado e o tempo total.
-        """
-        simulator = AerSimulator()
+    """
+    Classe responsável por apresentar informações de ambiente,
+    relatórios de desempenho e gráficos comparativos entre
+    simulação quântica (Grover) e busca linear clássica.
+    """
 
-        qc_transpiled = transpile(qc, simulator)
+    # --------------------------------------------------
+    # Informações do ambiente
+    # --------------------------------------------------
+    def ambiente(self, simulacao):
+        env = simulacao.get_env_info()
 
-        start_time = time.perf_counter()
-        job = simulator.run(qc_transpiled, shots=shots)
-        result = job.result()
-        end_time = time.perf_counter()
+        print("\n================ AMBIENTE DE EXECUÇÃO ================\n")
 
-        execution_time = end_time - start_time
+        sys = env["system_info"]
+        print("💻 Sistema")
+        print(f"- Sistema Operacional: {sys['sistema_operacional']}")
+        print(f"- Arquitetura: {sys['arquitetura']}")
+        print(f"- Processador: {sys['processador']}")
+        print(f"- Núcleos físicos: {sys['nucleos_fisicos']}")
+        print(f"- Núcleos lógicos: {sys['nucleos_logicos']}")
+        print(f"- Memória RAM: {sys['memoria_ram_gb']} GB")
 
-        return {
-            "result": result,
-            "execution_time": execution_time,
-            "backend": simulator
-        }
+        print("\n🔧 Backend Quântico")
+        print(f"- Backend: {env['backend_name']}")
+        print(f"- GPU disponível: {'SIM' if env['gpu_available'] else 'NÃO'}")
+        print(f"- Execução usando GPU: {'SIM' if env['using_gpu'] else 'NÃO'}")
 
-    def coletar_info_ambiente(simulator):
-        """
-        Coleta informações do backend e do ambiente de execução.
-        """
-        backend_name = simulator.name
-
-        gpu_backends = [
-            backend.name for backend in Aer.backends()
-            if "gpu" in backend.name.lower()
-        ]
-
-        gpu_available = len(gpu_backends) > 0
-        using_gpu = getattr(simulator.options, "device", "CPU") == "GPU"
-
-        system_info = {
-            "Sistema Operacional": platform.system(),
-            "Arquitetura": platform.machine(),
-            "Processador": platform.processor(),
-            "Núcleos físicos": psutil.cpu_count(logical=False),
-            "Núcleos lógicos": psutil.cpu_count(logical=True),
-            "Memória RAM (GB)": round(psutil.virtual_memory().total / (1024**3), 2),
-        }
-
-        return {
-            "backend_name": backend_name,
-            "gpu_available": gpu_available,
-            "using_gpu": using_gpu,
-            "gpu_backends": gpu_backends,
-            "system_info": system_info
-        }
-    
-    def gerar_relatorio_desempenho(
-        num_qubits,
-        shots,
-        execution_time,
-        env_info
-    ):
-        print("\n================ RELATÓRIO DE DESEMPENHO ================\n")
-
-        print("⚛️ Circuito Quântico")
-        print(f"- Número de qubits: {num_qubits}")
-        print(f"- Shots: {shots}")
-
-        print("\n⏱️ Tempo de Execução")
-        print(f"- Tempo total: {execution_time:.6f} segundos")
-
-        print("\n🔧 Backend Qiskit")
-        print(f"- Backend em uso: {env_info['backend_name']}")
-        print(f"- GPU disponível no sistema: {'SIM' if env_info['gpu_available'] else 'NÃO'}")
-        print(f"- Execução usando GPU: {'SIM' if env_info['using_gpu'] else 'NÃO'}")
-
-        if env_info["gpu_available"]:
+        if env["gpu_available"]:
             print("- Backends GPU detectados:")
-            for b in env_info["gpu_backends"]:
+            for b in env["gpu_backends"]:
                 print(f"  • {b}")
 
-        print("\n💻 Ambiente de Execução")
-        for k, v in env_info["system_info"].items():
-            print(f"- {k}: {v}")
+        print("\n======================================================\n")
+
+
+    def relatorio(self, simulacao, classica):
+        print("\n================ RELATÓRIO DE DESEMPENHO ================\n")
+
+        # ======================================================
+        # ALGORITMO DE GROVER (SIMULAÇÃO QUÂNTICA)
+        # ======================================================
+        print("⚛️ ALGORITMO DE GROVER (SIMULAÇÃO QUÂNTICA)\n")
+
+        num_qubits = simulacao.get_num_qubits()
+        espaco_busca = 2 ** num_qubits
+        env = simulacao.get_env_info()
+
+        print(f"- Número de qubits: {num_qubits}")
+        print(f"- Espaço de busca: {espaco_busca}")
+
+        for execucao in simulacao.get_execucoes():
+            shots = execucao["shots"]
+            tempo = execucao["execution_time"]
+            counts = execucao["counts"]
+
+            estado_alvo = max(counts, key=counts.get)
+
+            # Indicadores estruturais do circuito
+            # (assumindo circuito de Grover fixo por execução)
+            total_portas = "N/A (não armazenado)"
+            profundidade = "N/A (não armazenado)"
+            num_iteracoes = "k (definido na construção do circuito)"
+
+            print("\nExecução:")
+            print(f"  • Estado alvo: {estado_alvo}")
+            print(f"  • Shots: {shots}")
+            print(f"  • Tempo (s): {tempo:.6f}")
+            print(f"  • Número de iterações (Grover): {num_iteracoes}")
+            print(f"  • Total de portas: {total_portas}")
+            print(f"  • Profundidade do circuito: {profundidade}")
+
+        print("\n- Backend:", env["backend_name"])
+        print(f"- Uso de GPU: {'SIM' if env['using_gpu'] else 'NÃO'}")
+
+        # ======================================================
+        # BUSCA LINEAR CLÁSSICA
+        # ======================================================
+        print("\n🖥️ BUSCA LINEAR CLÁSSICA\n")
+
+        r = classica.get_resultado()
+
+        print(f"- Número de bits: {r['num_bits']}")
+        print(f"- Espaço de busca: {r['espaco_busca']}")
+        print(f"- Estado alvo: {r['alvo_bits']}")
+        print(f"- Tempo (s): {r['execution_time']:.6f}")
+        print(f"- Número de iterações: {r['iteracoes']}")
 
         print("\n=========================================================\n")
+
+    # --------------------------------------------------
+    # Gráficos comparativos
+    # --------------------------------------------------
+    def graficos(self, simulacao, classico):
+        execucoes = simulacao.get_execucoes()
+
+        shots = [e["shots"] for e in execucoes]
+        tempos_quanticos = [e["execution_time"] for e in execucoes]
+
+        tempo_classico = classico.get_execution_time()
+
+        # ---------- Gráfico 1: Tempo x Shots (Quântico) ----------
+        plt.figure()
+        plt.plot(shots, tempos_quanticos, marker="o")
+        plt.xlabel("Número de shots")
+        plt.ylabel("Tempo de execução (s)")
+        plt.title("Desempenho da Simulação Quântica (Grover)")
+        plt.grid(True)
+        plt.show()
+
+        # ---------- Gráfico 2: Comparação Clássico x Quântico ----------
+        plt.figure()
+
+        plt.bar(
+            ["Busca Clássica", "Grover (Simulado)"],
+            [tempo_classico, min(tempos_quanticos)],
+        )
+
+        plt.ylabel("Tempo de execução (s)")
+        plt.title("Comparação de Desempenho: Clássico × Quântico")
+        plt.grid(axis="y")
+        plt.show()
